@@ -19,11 +19,14 @@ impl DocsUseCase {
         if let Some(first) = iter.next() {
             let re_class = regex::Regex::new(r#"\sclass=(".*?"|'.*?')"#).unwrap();
             let re_script = regex::Regex::new(r#"(?is)<script.*?</script>"#).unwrap();
+            let re_toolbar =
+                regex::Regex::new(r#"(?is)<rustdoc-toolbar.*?</rustdoc-toolbar>"#).unwrap();
 
             let html = first.inner_html().to_string();
 
             let result = re_class.replace_all(&html, "");
             let result = re_script.replace_all(&result, "");
+            let result = re_toolbar.replace_all(&result, "");
 
             return Ok(result.to_string());
         } else {
