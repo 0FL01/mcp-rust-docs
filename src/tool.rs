@@ -75,10 +75,6 @@ impl Tool {
     }
 
     /// Retrieves the top page of a specific version of a crate from docs.rs.
-    /// Note: Rust crates often have significant API changes even with minor version updates,
-    /// so always check the documentation for the exact version before providing information.
-    /// If you want to explore unknown structs or modules, start by retrieving the top page
-    /// and follow the links in the 'Modules' section to find the desired items.
     #[rmcp::tool]
     async fn retrieve_documentation_index_page(
         &self,
