@@ -1,0 +1,7 @@
+{
+    "servers": {
+        "mcp-rust-docs": {
+            "command": "/home/shirayuki/repos/mcp-rust-docs/target/release/mcp-rust-docs"
+        }
+    }
+}
