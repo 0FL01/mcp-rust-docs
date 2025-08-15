@@ -56,4 +56,19 @@ impl DocsUseCase {
 
         Ok(result)
     }
+
+    pub async fn fetch_document_page(
+        &self,
+        crate_name: &str,
+        version: &str,
+        path: &str,
+    ) -> Result<String, crate::error::Error> {
+        let url = format!("https://docs.rs/{crate_name}/{version}/{crate_name}{path}");
+
+        let raw_html = self.http_repository.get(&url).await?;
+        let main_html = self.extract_main_content(&raw_html, "section#main-content")?;
+        let result = self.cleanup_html(&main_html)?;
+
+        Ok(result)
+    }
 }

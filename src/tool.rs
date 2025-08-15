@@ -31,6 +31,18 @@ pub struct RetrieveDocumentationIndexPageParams {
     pub version: String,
 }
 
+#[derive(Debug, serde::Deserialize, rmcp::schemars::JsonSchema)]
+pub struct RetrieveDocumentationPageParams {
+    /// Name of the crate
+    pub crate_name: String,
+
+    /// Crate version. For v1.0.0, use `1.0.0`. For the latest version, use `latest`.
+    pub version: String,
+
+    /// This is not a search query; you need to know the exact link path in advance.
+    pub path: String,
+}
+
 #[rmcp::tool_router]
 impl Tool {
     pub fn new(
@@ -74,6 +86,28 @@ impl Tool {
         let response = self
             .docs_use_case
             .fetch_document_index_page(&crate_name, &version)
+            .await
+            .map_err(|e| e.into())?;
+
+        let result = rmcp::model::Content::text(response);
+
+        Ok(rmcp::model::CallToolResult::success(vec![result]))
+    }
+
+    #[rmcp::tool(
+        description = "Retrieves a documentation page from docs.rs. The URL must follow the format `https://docs.rs/{crate_name}/{version}/{crate_name}{path}`, such as `https://docs.rs/serde/latest/serde/de/value/struct.BoolDeserializer.html`. In this example, `path` is `/de/value/struct.BoolDeserializer.html`. If you want to explore unknown modules or structs, you can first retrieve the top page. The 'Modules' section on the top page lists top-level modules, which you can follow to find the desired module."
+    )]
+    async fn retrieve_documentation_page(
+        &self,
+        rmcp::handler::server::tool::Parameters(RetrieveDocumentationPageParams {
+            crate_name,
+            version,
+            path,
+        }): rmcp::handler::server::tool::Parameters<RetrieveDocumentationPageParams>,
+    ) -> Result<rmcp::model::CallToolResult, rmcp::ErrorData> {
+        let response = self
+            .docs_use_case
+            .fetch_document_page(&crate_name, &version, &path)
             .await
             .map_err(|e| e.into())?;
 
