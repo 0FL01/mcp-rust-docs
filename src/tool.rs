@@ -98,6 +98,29 @@ impl Tool {
         Ok(rmcp::model::CallToolResult::success(vec![result]))
     }
 
+    /// Retrieves all items (structs, enums, functions, etc.) defined in the specified crate version from docs.rs.
+    /// Use this when you are unsure where a particular item is located in the documentation.
+    /// Returns a list of all discoverable items for the crate and version.
+    #[rmcp::tool]
+    async fn retrieve_documentation_all_items(
+        &self,
+        rmcp::handler::server::tool::Parameters(RetrieveDocumentationIndexPageParams {
+            crate_name,
+            version,
+        }): rmcp::handler::server::tool::Parameters<RetrieveDocumentationIndexPageParams>,
+    ) -> Result<rmcp::model::CallToolResult, rmcp::ErrorData> {
+        let response = self
+            .docs_use_case
+            .fetch_all_items(&crate_name, &version)
+            .await
+            .map_err(|e| e.into())?
+            .into_iter()
+            .map(|item| rmcp::model::Content::text(serde_json::to_string(&item).unwrap()))
+            .collect::<Vec<rmcp::model::Content>>();
+
+        Ok(rmcp::model::CallToolResult::success(response))
+    }
+
     /// Retrieves a documentation page from docs.rs.
     /// The URL must follow the format `https://docs.rs/{crate_name}/{version}/{crate_name}{path}`,
     /// such as `https://docs.rs/serde/latest/serde/de/value/struct.BoolDeserializer.html`.

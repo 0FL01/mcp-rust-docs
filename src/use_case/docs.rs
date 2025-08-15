@@ -71,4 +71,70 @@ impl DocsUseCase {
 
         Ok(result)
     }
+
+    pub fn parse_all_items(
+        &self,
+        html: &str,
+    ) -> Result<Vec<crate::entity::docs::Item>, crate::error::Error> {
+        let document = scraper::Html::parse_document(html);
+        let h3_selector = scraper::Selector::parse("section#main-content > h3").map_err(|e| {
+            tracing::error!("{}", e);
+            crate::error::Error::ScraperSelectorParse(e.to_string())
+        })?;
+        let ul_selector = scraper::Selector::parse("section#main-content > ul").map_err(|e| {
+            tracing::error!("{}", e);
+            crate::error::Error::ScraperSelectorParse(e.to_string())
+        })?;
+        let a_selector = scraper::Selector::parse("a").map_err(|e| {
+            tracing::error!("{}", e);
+            crate::error::Error::ScraperSelectorParse(e.to_string())
+        })?;
+
+        let h3_elements = document.select(&h3_selector).into_iter();
+        let ul_elements = document.select(&ul_selector).into_iter();
+
+        let zipped = h3_elements
+            .zip(ul_elements)
+            .collect::<Vec<(scraper::ElementRef<'_>, scraper::ElementRef<'_>)>>();
+
+        let items = zipped
+            .into_iter()
+            .map(|(h3, ul)| {
+                let r#type = h3.inner_html().trim().to_string();
+
+                let items = ul
+                    .select(&a_selector)
+                    .into_iter()
+                    .map(|a| {
+                        let href = a.attr("href").map(|href| href.to_string());
+                        let path = Some(a.inner_html());
+                        crate::entity::docs::Item {
+                            r#type: r#type.clone(),
+                            href,
+                            path,
+                        }
+                    })
+                    .collect::<Vec<crate::entity::docs::Item>>();
+
+                items
+            })
+            .flatten()
+            .collect::<Vec<crate::entity::docs::Item>>();
+
+        Ok(items)
+    }
+
+    pub async fn fetch_all_items(
+        &self,
+        crate_name: &str,
+        version: &str,
+    ) -> Result<Vec<crate::entity::docs::Item>, crate::error::Error> {
+        let url = format!("https://docs.rs/{crate_name}/{version}/{crate_name}/all.html");
+
+        let raw_html = self.http_repository.get(&url).await?;
+
+        let items = self.parse_all_items(&raw_html)?;
+
+        Ok(items)
+    }
 }
