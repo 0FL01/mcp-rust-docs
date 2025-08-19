@@ -4,7 +4,7 @@ pub struct DocsUseCase {
 }
 
 impl DocsUseCase {
-    fn extract_main_content(
+    pub(super) fn extract_main_content(
         &self,
         html: &str,
         selector: &str,
@@ -30,7 +30,7 @@ impl DocsUseCase {
         }
     }
 
-    fn cleanup_html(&self, html: &str) -> Result<String, crate::error::Error> {
+    pub(super) fn cleanup_html(&self, html: &str) -> Result<String, crate::error::Error> {
         let re_class = regex::Regex::new(r#"\sclass=(".*?"|'.*?')"#).unwrap();
         let re_script = regex::Regex::new(r#"(?is)<script.*?</script>"#).unwrap();
         let re_toolbar =
@@ -72,7 +72,7 @@ impl DocsUseCase {
         Ok(result)
     }
 
-    pub fn parse_all_items(
+    pub(super) fn parse_all_items(
         &self,
         html: &str,
     ) -> Result<Vec<crate::entity::docs::Item>, crate::error::Error> {
@@ -136,5 +136,21 @@ impl DocsUseCase {
         let items = self.parse_all_items(&raw_html)?;
 
         Ok(items)
+    }
+}
+
+#[cfg(test)]
+mod test {
+
+    #[tokio::test]
+    async fn test_fetch_document_page() -> Result<(), crate::error::Error> {
+        let http_repository = std::sync::Arc::new(crate::repository::http::HttpRepositoryImpl {});
+        let use_case = crate::use_case::docs::DocsUseCase { http_repository };
+
+        let res = use_case.fetch_all_items("serde", "latest").await;
+
+        assert!(res.is_ok());
+
+        Ok(())
     }
 }
