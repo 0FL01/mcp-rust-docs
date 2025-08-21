@@ -17,17 +17,17 @@ impl ResourceMap {
     pub fn new() -> Self {
         let mut map = std::collections::HashMap::new();
 
-        let uri = "str:///instruction";
+        let uri = "str://mcp-rust-docs/instruction";
         let resource = Resource {
             uri: uri.to_owned(),
-            name: "Sample".to_owned(),
+            name: "Instruction".to_owned(),
             description: None,
             mime_type: Some("text/plain".to_owned()),
             size: None,
             contents: rmcp::model::ResourceContents::TextResourceContents {
                 uri: uri.to_owned(),
                 mime_type: Some("text/plain".to_owned()),
-                text: "A sample resource.".to_owned(),
+                text: include_str!("./instruction.md").to_owned(),
             },
         };
 
