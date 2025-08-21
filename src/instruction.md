@@ -1,11 +1,9 @@
-# Rust Documentation Search
+# MCP Tool Usage Instructions
 
-Use the available search tools to explore Rust crates and documentation.
+**You must use the MCP tools provided by this server** to search and retrieve Rust documentation.
 
-Available capabilities:
+## Important
 
-- Search for crates
-- Retrieve documentation pages
-- Search for functions and APIs
-
-Search is powered by the latest data from docs.rs.
+- Do NOT provide general knowledge answers about Rust crates or documentation
+- Always use these MCP tools for current, accurate crate information
+- All data comes from the latest docs.rs content

@@ -21,7 +21,10 @@ impl ResourceMap {
         let resource = Resource {
             uri: uri.to_owned(),
             name: "Instruction".to_owned(),
-            description: None,
+            description: Some(
+                "Mandatory instructions for AI agents to use MCP tools when handling Rust documentation queries"
+                    .to_owned(),
+            ),
             mime_type: Some("text/plain".to_owned()),
             size: None,
             contents: rmcp::model::ResourceContents::TextResourceContents {
