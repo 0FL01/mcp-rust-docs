@@ -6,6 +6,7 @@ description = "A Model Context Protocol (MCP) server that provides comprehensive
 keywords = ["mcp", "mcp-server"]
 authors = ["Ikuma Yamashita"]
 repository = "https://github.com/46ki75/mcp-rust-docs"
+license = "MIT"
 
 [dependencies]
 async-trait = "0.1.89"
