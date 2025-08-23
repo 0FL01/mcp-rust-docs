@@ -15,6 +15,10 @@ impl rmcp::ServerHandler for Handler {
                 .enable_tools()
                 .enable_resources()
                 .build(),
+            server_info: rmcp::model::Implementation {
+                name: "mcp-rust-docs".to_owned(),
+                version: env!("CARGO_PKG_VERSION").to_string(),
+            },
             ..Default::default()
         }
     }
