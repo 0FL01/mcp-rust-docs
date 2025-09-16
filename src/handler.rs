@@ -18,6 +18,9 @@ impl rmcp::ServerHandler for Handler {
             server_info: rmcp::model::Implementation {
                 name: "mcp-rust-docs".to_owned(),
                 version: env!("CARGO_PKG_VERSION").to_string(),
+                icons: None,
+                title: Some("mcp-rust-docs".to_owned()),
+                website_url: Some("https://github.com/46ki75/mcp-rust-docs".to_owned()),
             },
             ..Default::default()
         }

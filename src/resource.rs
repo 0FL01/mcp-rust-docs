@@ -30,7 +30,7 @@ impl ResourceMap {
             contents: rmcp::model::ResourceContents::TextResourceContents {
                 uri: uri.to_owned(),
                 mime_type: Some("text/plain".to_owned()),
-                text: include_str!("./instruction.md").to_owned(),
+                text: include_str!("./instruction.md").to_owned(),meta:None
             },
         };
 
@@ -59,6 +59,8 @@ impl ResourceMap {
                             description: v.description.clone(),
                             mime_type: v.mime_type.clone(),
                             size: v.size,
+                            icons: None,
+                            title: Some(v.name.clone()),
                         },
                         None,
                     )
