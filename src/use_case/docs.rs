@@ -41,7 +41,7 @@ impl DocsUseCase {
 
         let raw_html = self.http_repository.get(&url).await?;
         let main_html = self.extract_main_content(&raw_html, "section#main-content")?;
-        let markdown = html2md::rewrite_html(&main_html, true);
+        let markdown = html2md::rewrite_html(&main_html, false);
 
         Ok(markdown)
     }
@@ -56,7 +56,7 @@ impl DocsUseCase {
 
         let raw_html = self.http_repository.get(&url).await?;
         let main_html = self.extract_main_content(&raw_html, "section#main-content")?;
-        let markdown = html2md::rewrite_html(&main_html, true);
+        let markdown = html2md::rewrite_html(&main_html, false);
 
         Ok(markdown)
     }
