@@ -151,8 +151,9 @@ impl crate::handler::Handler {
     }
 
     /// Retrieves a documentation page from docs.rs.
-    /// The URL must follow the format `https://docs.rs/{crate_name}/{version}/{crate_name}{path}`,
+    /// The URL must follow the format `https://docs.rs/{crate_name}/{version}/{module_name}{path}`,
     /// such as `https://docs.rs/serde/latest/serde/de/value/struct.BoolDeserializer.html`.
+    /// For crates with hyphens in their name (e.g., `async-openai`), the `module_name` segment uses underscores (e.g., `async_openai`).
     /// In this example, `path` is `/de/value/struct.BoolDeserializer.html`.
     /// If you want to explore unknown modules or structs, you can first retrieve the top page.
     /// The 'Modules' section on the top page lists top-level modules,

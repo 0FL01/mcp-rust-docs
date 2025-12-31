@@ -37,7 +37,8 @@ impl DocsUseCase {
         crate_name: &str,
         version: &str,
     ) -> Result<String, crate::error::Error> {
-        let url = format!("https://docs.rs/{crate_name}/{version}/{crate_name}/index.html");
+        let module_name = crate_name.replace('-', "_");
+        let url = format!("https://docs.rs/{crate_name}/{version}/{module_name}/index.html");
 
         let raw_html = self.http_repository.get(&url).await?;
         let main_html = self.extract_main_content(&raw_html, "section#main-content")?;
@@ -52,7 +53,8 @@ impl DocsUseCase {
         version: &str,
         path: &str,
     ) -> Result<String, crate::error::Error> {
-        let url = format!("https://docs.rs/{crate_name}/{version}/{crate_name}{path}");
+        let module_name = crate_name.replace('-', "_");
+        let url = format!("https://docs.rs/{crate_name}/{version}/{module_name}{path}");
 
         let raw_html = self.http_repository.get(&url).await?;
         let main_html = self.extract_main_content(&raw_html, "section#main-content")?;
@@ -118,7 +120,8 @@ impl DocsUseCase {
         crate_name: &str,
         version: &str,
     ) -> Result<Vec<crate::entity::docs::Item>, crate::error::Error> {
-        let url = format!("https://docs.rs/{crate_name}/{version}/{crate_name}/all.html");
+        let module_name = crate_name.replace('-', "_");
+        let url = format!("https://docs.rs/{crate_name}/{version}/{module_name}/all.html");
 
         let raw_html = self.http_repository.get(&url).await?;
 
@@ -222,6 +225,34 @@ mod test {
         let use_case = crate::use_case::docs::DocsUseCase { http_repository };
 
         let res = use_case.fetch_all_items("serde", "latest").await;
+
+        assert!(res.is_ok());
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_fetch_document_page_with_hyphen() -> Result<(), crate::error::Error> {
+        let http_repository = std::sync::Arc::new(crate::repository::http::HttpRepositoryImpl {});
+        let use_case = crate::use_case::docs::DocsUseCase { http_repository };
+
+        // async-openai has a hyphen, so this tests our fix
+        let res = use_case.fetch_all_items("async-openai", "0.32.2").await;
+
+        assert!(res.is_ok());
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_fetch_document_index_page_with_hyphen() -> Result<(), crate::error::Error> {
+        let http_repository = std::sync::Arc::new(crate::repository::http::HttpRepositoryImpl {});
+        let use_case = crate::use_case::docs::DocsUseCase { http_repository };
+
+        // This should invoke fetch_document_index_page
+        let res = use_case
+            .fetch_document_index_page("async-openai", "0.32.2")
+            .await;
 
         assert!(res.is_ok());
 
