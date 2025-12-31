@@ -177,7 +177,8 @@ impl DocsUseCase {
 
         let query_parser = tantivy::query::QueryParser::for_index(&index, vec![path_field]);
 
-        let query = query_parser.parse_query(keyword)?;
+        let clean_keyword = keyword.replace("::", " ");
+        let query = query_parser.parse_query(&clean_keyword)?;
         let searcher = reader.searcher();
 
         let top_docs = searcher.search(&query, &tantivy::collector::TopDocs::with_limit(10))?;
@@ -256,6 +257,19 @@ mod test {
 
         assert!(res.is_ok());
 
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_search_items_with_colon() -> Result<(), crate::error::Error> {
+        let http_repository = std::sync::Arc::new(crate::repository::http::HttpRepositoryImpl {});
+        let use_case = crate::use_case::docs::DocsUseCase { http_repository };
+
+        // This triggers the :: syntax issue if not handled
+        // We use a known crate and keyword pattern
+        let res = use_case.search_items("serde", "latest", "Serializer::serialize").await;
+
+        assert!(res.is_ok(), "Search failed: {:?}", res.err());
         Ok(())
     }
 }
