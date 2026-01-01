@@ -54,7 +54,24 @@ impl DocsUseCase {
         path: &str,
     ) -> Result<String, crate::error::Error> {
         let module_name = crate_name.replace('-', "_");
-        let url = format!("https://docs.rs/{crate_name}/{version}/{module_name}{path}");
+
+        // Sanitize path to avoid duplication if it already includes the module name
+        let sanitized_path = if path.starts_with(&format!("/{module_name}/")) {
+            path.replacen(&format!("/{module_name}"), "", 1)
+        } else if path.starts_with(&format!("{module_name}/")) {
+            path.replacen(&format!("{module_name}"), "", 1)
+        } else {
+            path.to_string()
+        };
+
+        // Ensure path starts with '/'
+        let final_path = if sanitized_path.starts_with('/') {
+            sanitized_path
+        } else {
+            format!("/{}", sanitized_path)
+        };
+
+        let url = format!("https://docs.rs/{crate_name}/{version}/{module_name}{final_path}");
 
         let raw_html = self.http_repository.get(&url).await?;
         let main_html = self.extract_main_content(&raw_html, "section#main-content")?;
@@ -270,6 +287,21 @@ mod test {
         let res = use_case.search_items("serde", "latest", "Serializer::serialize").await;
 
         assert!(res.is_ok(), "Search failed: {:?}", res.err());
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_fetch_document_page_with_redundant_path_prefix() -> Result<(), crate::error::Error> {
+        let http_repository = std::sync::Arc::new(crate::repository::http::HttpRepositoryImpl {});
+        let use_case = crate::use_case::docs::DocsUseCase { http_repository };
+
+        // Test with a path that incorrectly includes the module name prefix
+        // /serde/ should be sanitized to avoid /serde/serde/... duplication
+        let res = use_case
+            .fetch_document_page("serde", "latest", "/serde/ser/trait.Serializer.html")
+            .await;
+
+        assert!(res.is_ok(), "Failed to fetch with redundant path prefix: {:?}", res.err());
         Ok(())
     }
 }
