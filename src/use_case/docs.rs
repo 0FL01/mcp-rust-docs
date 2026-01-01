@@ -56,12 +56,40 @@ impl DocsUseCase {
         let module_name = crate_name.replace('-', "_");
 
         // Sanitize path to avoid duplication if it already includes the module name
-        let sanitized_path = if path.starts_with(&format!("/{module_name}/")) {
-            path.replacen(&format!("/{module_name}"), "", 1)
-        } else if path.starts_with(&format!("{module_name}/")) {
-            path.replacen(&format!("{module_name}"), "", 1)
-        } else {
-            path.to_string()
+        // Handle multiple duplicate prefixes (e.g., "/serde/serde/serde/de/")
+        let sanitized_path = {
+            let mut result = path.to_string();
+            let mut iterations = 0;
+            const MAX_ITERATIONS: usize = 10; // Safety limit
+
+            let prefix1 = format!("/{module_name}/");
+            let prefix2 = format!("{module_name}/");
+            let remove1 = format!("/{module_name}");
+            let remove2 = module_name.to_string();
+
+            while iterations < MAX_ITERATIONS {
+                let before = result.clone();
+                if result.starts_with(&prefix1) {
+                    result = result.replacen(&remove1, "", 1);
+                } else if result.starts_with(&prefix2) {
+                    result = result.replacen(&remove2, "", 1);
+                }
+
+                // Break if no changes were made
+                if result == before {
+                    break;
+                }
+                iterations += 1;
+            }
+
+            // Log if sanitization occurred
+            if result != path {
+                tracing::debug!(
+                    "Path sanitized: '{path}' -> '{result}' (removed {iterations} redundant '{module_name}' prefix(es))"
+                );
+            }
+
+            result
         };
 
         // Ensure path starts with '/'
@@ -302,6 +330,21 @@ mod test {
             .await;
 
         assert!(res.is_ok(), "Failed to fetch with redundant path prefix: {:?}", res.err());
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_fetch_document_page_with_multiple_redundant_prefixes() -> Result<(), crate::error::Error> {
+        let http_repository = std::sync::Arc::new(crate::repository::http::HttpRepositoryImpl {});
+        let use_case = crate::use_case::docs::DocsUseCase { http_repository };
+
+        // Test with multiple redundant prefixes (edge case)
+        // /serde/serde/serde/ should be sanitized to /
+        let res = use_case
+            .fetch_document_page("serde", "latest", "/serde/serde/")
+            .await;
+
+        assert!(res.is_ok(), "Failed to fetch with multiple redundant prefixes: {:?}", res.err());
         Ok(())
     }
 }
