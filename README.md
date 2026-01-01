@@ -25,10 +25,12 @@ You can run the MCP Rust Docs Server using either Node.js or Rust:
 
 ### Using cargo
 
-First, install the server with Cargo:
+First, build the server from source:
 
 ```bash
-cargo install mpc-rust-docs
+git clone https://github.com/0FL01/mcp-rust-docs.git
+cd mcp-rust-docs
+cargo build --release
 ```
 
 Then start the server:
@@ -37,7 +39,7 @@ Then start the server:
 {
   "servers": {
     "mcp-rust-docs": {
-      "command": "mcp-rust-docs"
+      "command": "/path/to/mcp-rust-docs/target/release/mcp-rust-docs"
     }
   }
 }
